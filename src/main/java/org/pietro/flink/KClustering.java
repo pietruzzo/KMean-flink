@@ -4,6 +4,7 @@ import org.apache.flink.api.common.functions.*;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.aggregation.Aggregations;
+import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.DeltaIteration;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -49,8 +50,8 @@ public class KClustering {
                 .getSolutionSet()
                 .cross(iteration.getWorkset())
                 .with(new CalculateDistanceCross())
-                .groupBy(2, 0)//Group by id of node
-                .minBy(0)//get min distance (Get for each node the nearest centroid
+                .groupBy((KeySelector<Tuple3<Double, Integer, Tuple3<Integer, Double[], Integer>>, Integer>) tuple -> tuple.f2.f0)//Group by id of node
+                .minBy(0)//get min distance (Get for each node the nearest centroid)
                 .map(new AssignToCluster());
 
 
@@ -58,7 +59,7 @@ public class KClustering {
         DataSet<Tuple3<Integer, Double[], Integer>> newCentroids = iteration
                 .getSolutionSet()
                 .map(new CountedPoint())
-                .groupBy(0, 2) //Raggruppati per cluster
+                .groupBy((KeySelector<Tuple2<Tuple3<Integer, Double[], Integer>, Integer>, Integer>) tuple -> tuple.f0.f2) //Raggruppati per cluster
                 .reduce(new PointsDimensionSum())
                 .map(new AVG())
                 ;
@@ -80,12 +81,15 @@ public class KClustering {
                     }
                     return false;
                 })
-                .map((MapFunction<Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>>, Tuple1<Boolean>>) tuple3Tuple3Tuple2 -> new Tuple1<>(true))
+                .map((MapFunction<Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>>, Tuple1<Boolean>>)
+                        (Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>> tuple3Tuple3Tuple2)
+                                -> new Tuple1<>(true))
                 .first(1)
                 .cross(iteration.getWorkset())
                 .project(01);
 
-        iteration.closeWith(newWorkset, delta);
+        iteration.closeWith(newSolutionSet, delta)
+        .writeAsCsv(OUTPUT_FILE);
         // execute program
         env.execute("Flink Batch Java Centroids");
     }

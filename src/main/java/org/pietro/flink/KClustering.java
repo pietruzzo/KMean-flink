@@ -17,12 +17,12 @@ import java.util.List;
 
 public class KClustering {
 
-    static final String INPUT_VALUES = "sample.cvs";
-    static final String INPUT_CANTROIDS = "centroids.csv";
-    static final String OUTPUT_FILE = "output.csv";
+    private static final String INPUT_VALUES = "sample.cvs";
+    private static final String INPUT_CANTROIDS = "centroids.csv";
+    private static final String OUTPUT_FILE = "output.csv";
 
-    static int maxIterations = 100;
-    static int keyPosition = 0;
+    private static int maxIterations = 100;
+    private static int keyPosition = 0;
 
     public static void main(String[] args) throws Exception {
         // set up the batch execution environment
@@ -30,17 +30,13 @@ public class KClustering {
 
 
         // get centroids
-        DataSet<Tuple3<Integer, Double[], Integer>> centroids = env.readTextFile(INPUT_CANTROIDS).flatMap(new Splitter());
+        DataSet<Tuple3<Integer, Double[], Integer>> initialDeltaSet = env.readTextFile(INPUT_CANTROIDS).flatMap(new Splitter());
 
         //Open Stream from CSV file
-        DataSet<Tuple3<Integer, Double[], Integer>> input = env.readTextFile(INPUT_VALUES).flatMap(new Splitter());
+        DataSet<Tuple3<Integer, Double[], Integer>> initialSolutionSet = env.readTextFile(INPUT_VALUES).flatMap(new Splitter());
+
 
         //Tranformations
-
-        DataSet<Tuple3<Integer, Double[], Integer>> initialSolutionSet = input;
-
-        DataSet<Tuple3<Integer, Double[], Integer>> initialDeltaSet = centroids;
-
 
         DeltaIteration<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>> iteration = initialSolutionSet
                 .iterateDelta(initialDeltaSet, maxIterations, keyPosition);
@@ -81,9 +77,12 @@ public class KClustering {
                     }
                     return false;
                 })
-                .map((MapFunction<Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>>, Tuple1<Boolean>>)
-                        (Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>> tuple3Tuple3Tuple2)
-                                -> new Tuple1<>(true))
+                .map(new MapFunction<Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>>, Tuple1<Boolean>>() {
+                    @Override
+                    public Tuple1<Boolean> map(Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>> tuple3Tuple3Tuple2) throws Exception {
+                        return new Tuple1<>(true);
+                    }
+                })
                 .first(1)
                 .cross(iteration.getWorkset())
                 .project(01);
@@ -91,7 +90,7 @@ public class KClustering {
         iteration.closeWith(newSolutionSet, delta)
         .writeAsCsv(OUTPUT_FILE);
         // execute program
-        env.execute("Flink Batch Java Centroids");
+        env.execute();
     }
 
 }

@@ -49,7 +49,7 @@ public class KMeans {
         DataSet<Centroid> centroids = sets.f1;
 
         //get close condition and threshold
-        Boolean convergence = params.getBoolean("t", true);; //TODO: gestisci come arg
+        Boolean convergence = params.getBoolean("t", true);
         Double threshold = params.getDouble("t", DEFAULT_THRESHOLD);
 
         // set iteration

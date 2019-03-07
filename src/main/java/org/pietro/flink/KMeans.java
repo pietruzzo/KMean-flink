@@ -11,14 +11,21 @@ import org.apache.flink.api.common.functions.RichMapFunction;
 
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
-import org.pietro.flink.utils.DebugDataset;
+import org.pietro.flink.utils.DatasetIO;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
+
+import javax.xml.crypto.Data;
 import java.util.Collection;
 
 
 /**
  * K-Clustering Flink program
+ * args:
+ *  -c centroid absolute path
+ *  -p points absolute path
+ *  -n max number of iterations
+ *  -o output absolute path
  */
 public class KMeans {
 
@@ -33,11 +40,12 @@ public class KMeans {
         env.getConfig().setGlobalJobParameters(params);
 
         // get datasets
-        DataSet<Point> points = getPointDataSet(params, env);
-        DataSet<Centroid> centroids = getCentroidDataSet(params, env);
+        Tuple2<DataSet<Point>, DataSet<Centroid>> sets = DatasetIO.importFromFile(params, env);
+        DataSet<Point> points = sets.f0;
+        DataSet<Centroid> centroids = sets.f1;
 
         // set iteration
-        IterativeDataSet<Centroid> loop = centroids.iterate(params.getInt("num-iterations", MAX_DEFAULT_ITERATIONS));
+        IterativeDataSet<Centroid> loop = centroids.iterate(params.getInt("n", MAX_DEFAULT_ITERATIONS));
 
         /**
          * For each point: compute closest centroid
@@ -57,8 +65,8 @@ public class KMeans {
                 .map(new nearestCentroid()).withBroadcastSet(finalCentroids, "centroids");
 
         // TODO: emit result, use a specific function in Utils
-        if (params.has("output")) {
-            clusteredPoints.writeAsCsv(params.get("output"), "\n", " ");
+        if (params.has("o")) {
+            clusteredPoints.writeAsCsv(params.get("o"), "\n", " ");
 
             // since file sinks are lazy, we trigger the execution explicitly
             env.execute("KMeans Example");
@@ -67,38 +75,6 @@ public class KMeans {
             clusteredPoints.print();
         }
     }
-
-
-
-    private static DataSet<Centroid> getCentroidDataSet(ParameterTool params, ExecutionEnvironment env) {
-        DataSet<Centroid> centroids;
-        if (params.has("centroids")) {
-            centroids = env.readCsvFile(params.get("centroids"))
-                    .fieldDelimiter(" ")
-                    .pojoType(Centroid.class, "id", "x", "y");
-        } else {
-            System.out.println("Executing K-Means example with default centroid data set.");
-            System.out.println("Use --centroids to specify file input.");
-            centroids = DebugDataset.getDefaultCentroidDataSet(env);
-        }
-        return centroids;
-    }
-
-    private static DataSet<Point> getPointDataSet(ParameterTool params, ExecutionEnvironment env) {
-        DataSet<Point> points;
-        if (params.has("points")) {
-            // read points from CSV file
-            points = env.readCsvFile(params.get("points"))
-                    .fieldDelimiter(" ")
-                    .pojoType(Point.class, "x", "y");
-        } else {
-            System.out.println("Executing K-Means example with default point data set.");
-            System.out.println("Use --points to specify file input.");
-            points = DebugDataset.getDefaultPointDataSet(env);
-        }
-        return points;
-    }
-
 }
 
 /** Appends a count variable to the tuple. */

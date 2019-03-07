@@ -13,6 +13,12 @@ import java.util.Arrays;
 
 public class DatasetIO {
 
+    /**
+     * import datasets from files given by arguments
+     * @param params -p, -c parameters
+     * @param env execution environement
+     * @return Tuple2 containing datasets for Points and Centroids
+     */
     public static Tuple2<DataSet<Point>,DataSet<Centroid>> importFromFile(ParameterTool params, ExecutionEnvironment env){
         DataSet<Centroid> centroids;
         DataSet<Point> points;
@@ -34,6 +40,10 @@ public class DatasetIO {
             points = DebugDataset.getDefaultPointDataSet(env);
         }
         return new Tuple2<>(points, centroids);
+    }
+
+    public static void printResults(){
+
     }
 
     static Double[] extractDimensions (String[] s){

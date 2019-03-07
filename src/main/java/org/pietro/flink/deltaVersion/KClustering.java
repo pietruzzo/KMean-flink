@@ -1,9 +1,8 @@
-package org.pietro.flink;
+package org.pietro.flink.deltaVersion;
 
 import org.apache.flink.api.common.functions.*;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.aggregation.Aggregations;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.api.java.operators.DeltaIteration;
 import org.apache.flink.api.java.tuple.Tuple1;
@@ -11,8 +10,10 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.util.Collector;
 
-import java.awt.*;
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class KClustering {
@@ -25,6 +26,7 @@ public class KClustering {
     private static int keyPosition = 0;
 
     public static void main(String[] args) throws Exception {
+
         // set up the batch execution environment
         final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
@@ -52,7 +54,7 @@ public class KClustering {
 
 
         //From SUM to AVG
-        DataSet<Tuple3<Integer, Double[], Integer>> newCentroids = iteration
+        DataSet<Tuple3<Integer, Double[], Integer>> relocatedCentroids = iteration
                 .getSolutionSet()
                 .map(new CountedPoint())
                 .groupBy((KeySelector<Tuple2<Tuple3<Integer, Double[], Integer>, Integer>, Integer>) tuple -> tuple.f0.f2) //Raggruppati per cluster
@@ -61,16 +63,16 @@ public class KClustering {
                 ;
 
         //New Workset
-        DataSet<Tuple3<Integer, Double[], Integer>> newWorkset = iteration
+        DataSet<Tuple3<Integer, Double[], Integer>> newCentroids = iteration
                 .getWorkset()
-                .join(newCentroids).where(2).equalTo(2)
+                .join(relocatedCentroids).where(2).equalTo(2)
                 .map(new MapWorksetInformations())
                 ;
 
-        //Delta Workset
-        DataSet<Tuple3<Integer, Double[], Integer>> delta = iteration
+        //New Workset
+        DataSet<Tuple3<Integer, Double[], Integer>> newWorkset = iteration
                 .getWorkset()
-                .join(newWorkset).where(2).equalTo(2)
+                .join(newCentroids).where(2).equalTo(2)
                 .filter((FilterFunction<Tuple2<Tuple3<Integer, Double[], Integer>, Tuple3<Integer, Double[], Integer>>>) t1 -> {
                     for (int i = 0; i < t1.f0.f1.length; i++) {
                         if (t1.f0.f1[i] != t1.f1.f1[i]) return true;
@@ -87,12 +89,17 @@ public class KClustering {
                 .cross(iteration.getWorkset())
                 .project(01);
 
-        iteration.closeWith(newSolutionSet, delta)
+        iteration.closeWith(newSolutionSet, newWorkset)
         .writeAsCsv(OUTPUT_FILE);
         // execute program
         env.execute();
     }
 
+    static String getPathFromResources(String fileName) throws URISyntaxException {
+        File file = new File("src\\main\\resources\\"+fileName);
+        String absolutePath = file.getAbsolutePath();
+        return absolutePath;
+    }
 }
 
 
@@ -114,9 +121,9 @@ class Splitter implements FlatMapFunction<String, Tuple3<Integer, Double[], Inte
             dimensions.add(Double.parseDouble(word));
         }
         if (splitted.length==2) //Point
-            collector.collect(new Tuple3<>(Integer.parseInt(splitted[0]), (Double[]) dimensions.toArray(), -1));
+            collector.collect(new Tuple3<>(Integer.parseInt(splitted[0]), Arrays.copyOf(dimensions.toArray(), dimensions.size(),Double[].class), -1));
         else if (splitted.length == 3) //Centroid
-            collector.collect(new Tuple3<>(Integer.parseInt(splitted[0]), (Double[]) dimensions.toArray(), Integer.parseInt(splitted[2])));
+            collector.collect(new Tuple3<>(Integer.parseInt(splitted[0]), Arrays.copyOf(dimensions.toArray(), dimensions.size(),Double[].class), Integer.parseInt(splitted[2])));
         else System.out.println(s + " is bad formatted, thus ignored");
     }
 }

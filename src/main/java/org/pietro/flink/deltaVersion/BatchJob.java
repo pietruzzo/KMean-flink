@@ -16,16 +16,13 @@
  * limitations under the License.
  */
 
-package org.pietro.flink;
+package org.pietro.flink.deltaVersion;
 
 import org.apache.commons.math3.exception.DimensionMismatchException;
 import org.apache.flink.api.common.functions.*;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.aggregation.Aggregations;
 import org.apache.flink.api.java.operators.DeltaIteration;
-import org.apache.flink.api.java.operators.FlatMapOperator;
-import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -34,7 +31,6 @@ import org.apache.flink.util.Collector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author pietro

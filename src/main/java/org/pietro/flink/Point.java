@@ -1,63 +1,72 @@
 package org.pietro.flink;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
 
 /**
- * TODO dimension va portato a double
+ * Multidimensional Point
+ * POJO object
  */
 public class Point implements Serializable {
-    
-    private Integer[] dimension;
-    private Integer cluster;
 
-    public Point(){};
+    public Double[] dims;
 
-    public Point(List<Integer> dimension){
-        this.dimension = (Integer[]) dimension.toArray();
-        cluster = null;
+    /**
+     * Default constructor needed to serialize/deserialize POJO object
+     */
+    public Point() {}
+
+    public Point(Double[] dims) {
+        this.dims = dims;
     }
 
-    public Point(List<Integer> dimension, int cluster){
-        this.dimension = (Integer[]) dimension.toArray();
-        this.cluster = cluster;
+    /**
+     * Sum dimensions of nodes
+     * @param other
+     * @return this node with dimensions summed to the other
+     */
+    public Point addPoint(Point other) {
+        for (int i = 0; i < this.dims.length; i++) {
+            this.dims[i] = this.dims[i] + other.dims[i];
+        }
+        return this;
     }
 
-    public int getNumDimensions() {
-        return dimension.length;
+    /**
+     * Divide node dimensions for a scalar
+     * @param val
+     * @return this node modified
+     */
+    public Point divideScalar(long val) {
+        for (int i = 0; i < this.dims.length; i++) {
+            this.dims[i] = this.dims[i] / val;
+        }
+        return this;
     }
 
-    public Integer[] getDimension() {
-        return dimension.clone();
-    }
-
-    public void setDimension(List<Integer> dimension) {
-        this.dimension = (Integer[]) dimension.toArray();
-    }
-
-    public void setDimension(Integer[] dimension) {
-        this.dimension = (Integer[]) dimension;
-    }
-
-    public Integer getCluster(){
-        return cluster;
-    }
-
-    public void setCluster(Integer cluster){
-        this.cluster = cluster;
-    }
-
-
-    public double getDistance(Point p1) {
-
-        if (p1.getNumDimensions()!= this.getNumDimensions()) throw new IllegalArgumentException("Different number of dimensions");
-
-        double sum = 0;
-        for (int i = 0; i < getNumDimensions(); i++) {
-            sum = sum + Math.pow(p1.getDimension()[i] - this.getDimension()[i] , 2);
+    /**
+     * Calculate distance between nodes
+     * @param other
+     * @return calculated distance
+     */
+    public double distance(Point other) {
+        Double sum = 0.0;
+        for (int i = 0; i < this.dims.length; i++) {
+            sum = sum + Math.pow(other.dims[i] - dims[i], 2);
         }
         return Math.sqrt(sum);
     }
 
+    /**
+     * Print dimensions of this point
+     * @return node informations
+     */
+    @Override
+    public String toString() {
+        String s = "";
+        for (int i = 0; i < dims.length; i++) {
+            s = s + dims[i] + " ";
+        }
+        s = s.trim();
+        return s;
+    }
 }

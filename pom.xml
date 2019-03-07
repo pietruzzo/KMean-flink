@@ -144,7 +144,7 @@ under the License.
 							</filters>
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.pietro.flink.KClustering</mainClass>
+									<mainClass>org.pietro.flink.deltaVersion.KClustering</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>

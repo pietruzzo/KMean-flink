@@ -30,7 +30,7 @@ import java.util.Collection;
  *  -t threshold (double)
  *  --convergence-condition
  */
-public class KMeans {
+public class KMeanClustering {
 
     private static int MAX_DEFAULT_ITERATIONS = 50;
     private static double DEFAULT_THRESHOLD = 0.0;

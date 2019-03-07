@@ -1,6 +1,7 @@
 package org.pietro.flink;
 
 
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.operators.IterativeDataSet;
@@ -11,11 +12,11 @@ import org.apache.flink.api.common.functions.RichMapFunction;
 
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.util.Collector;
 import org.pietro.flink.utils.DatasetIO;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 
-import javax.xml.crypto.Data;
 import java.util.Collection;
 
 
@@ -26,10 +27,13 @@ import java.util.Collection;
  *  -p points absolute path
  *  -n max number of iterations
  *  -o output absolute path
+ *  -t threshold (double)
+ *  --convergence-condition
  */
 public class KMeans {
 
     private static int MAX_DEFAULT_ITERATIONS = 50;
+    private static double DEFAULT_THRESHOLD = 0.0;
 
     public static void main(String[] args) throws Exception {
 
@@ -44,6 +48,10 @@ public class KMeans {
         DataSet<Point> points = sets.f0;
         DataSet<Centroid> centroids = sets.f1;
 
+        //get close condition and threshold
+        Boolean convergence = params.getBoolean("t", true);; //TODO: gestisci come arg
+        Double threshold = params.getDouble("t", DEFAULT_THRESHOLD);
+
         // set iteration
         IterativeDataSet<Centroid> loop = centroids.iterate(params.getInt("n", MAX_DEFAULT_ITERATIONS));
 
@@ -57,8 +65,25 @@ public class KMeans {
                 .groupBy(0).reduce(new CentroidAccumulator())
                 .map(new AVG());
 
-        // TODO: Close condition
-        DataSet<Centroid> finalCentroids = loop.closeWith(newCentroids);
+        //region: Close Condition
+        DataSet<Centroid> finalCentroids;
+        if (convergence) {
+            // Join centroid dataset with old one on id (cluster)
+            DataSet<Tuple2<Centroid, Centroid>> compareSet = newCentroids
+                    .join(loop)
+                    .where("id")
+                    .equalTo("id");
+
+            //get non converged centroids
+            DataSet<Centroid> terminationSet = compareSet
+                    .flatMap(new isConverged(threshold));
+
+            // feed back centroids and stop if all centroids are converged
+            finalCentroids = loop.closeWith(newCentroids, terminationSet);
+        } else {
+            finalCentroids = loop.closeWith(newCentroids);
+        }
+        //endregion
 
         // assign points to final clusters or perform another iteration
         DataSet<Tuple2<Integer, Point>> clusteredPoints = points
@@ -140,5 +165,25 @@ class CentroidAccumulator implements ReduceFunction<Tuple3<Integer, Point, Long>
     @Override
     public Tuple3<Integer, Point, Long> reduce(Tuple3<Integer, Point, Long> val1, Tuple3<Integer, Point, Long> val2) {
         return new Tuple3<>(val1.f0, val1.f1.addPoint(val2.f1), val1.f2 + val2.f2);
+    }
+}
+
+/**
+ * Check if the clusters are converged given a threashold
+ * collect only non-convergent clusters
+ */
+class isConverged implements FlatMapFunction<Tuple2<Centroid, Centroid>, Centroid> {
+
+    private double threshold;
+
+    public isConverged(double threshold) {
+        this.threshold = threshold;
+    }
+
+    @Override
+    public void flatMap(Tuple2<Centroid, Centroid> pairCentroids, Collector<Centroid> col)  {
+        if (pairCentroids.f0.distance(pairCentroids.f1) >= Math.pow(threshold, 2)) {
+            col.collect(pairCentroids.f0);
+        }
     }
 }

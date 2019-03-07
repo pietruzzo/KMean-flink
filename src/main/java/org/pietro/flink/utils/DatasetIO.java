@@ -32,7 +32,6 @@ public class DatasetIO {
         }
 
         if (params.has("p")) {
-            // read points from CSV file
             points = env.readTextFile(params.get("p"))
                     .flatMap(new PointSplitter());
         } else {
@@ -42,8 +41,15 @@ public class DatasetIO {
         return new Tuple2<>(points, centroids);
     }
 
-    public static void printResults(){
+    public static void printResults(ParameterTool params, DataSet<Tuple2<Integer, Point>> clusteredPoints, ExecutionEnvironment env ) throws Exception {
+        if (params.has("o")) {
+            clusteredPoints.writeAsCsv(params.get("o"), "\n", "\t");
+            env.execute("K Clustering");
 
+        } else {
+            System.out.println(" -o to specify output path");
+            clusteredPoints.print();
+        }
     }
 
     static Double[] extractDimensions (String[] s){
@@ -64,7 +70,8 @@ class CentroidSplitter implements FlatMapFunction<String, Centroid> {
     @Override
     public void flatMap(String s, Collector<Centroid> collector) throws Exception {
         String[] splitted = s.split(" ");
-        collector.collect(new Centroid(Integer.parseInt(splitted[0]), DatasetIO.extractDimensions(Arrays.copyOfRange(splitted, 1, splitted.length))));
+        if(splitted.length !=0)
+            collector.collect(new Centroid(Integer.parseInt(splitted[0]), DatasetIO.extractDimensions(Arrays.copyOfRange(splitted, 1, splitted.length))));
     }
 }
 
@@ -76,6 +83,7 @@ class PointSplitter implements FlatMapFunction<String, Point> {
     @Override
     public void flatMap(String s, Collector<Point> collector) throws Exception {
         String[] splitted = s.split(" ");
-        collector.collect(new Point(DatasetIO.extractDimensions(splitted)));
+        if(splitted.length !=0)
+            collector.collect(new Point(DatasetIO.extractDimensions(splitted)));
     }
 }

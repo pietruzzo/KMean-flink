@@ -60,20 +60,12 @@ public class KMeans {
         // TODO: Close condition
         DataSet<Centroid> finalCentroids = loop.closeWith(newCentroids);
 
+        // assign points to final clusters or perform another iteration
         DataSet<Tuple2<Integer, Point>> clusteredPoints = points
-                // assign points to final clusters
                 .map(new nearestCentroid()).withBroadcastSet(finalCentroids, "centroids");
 
-        // TODO: emit result, use a specific function in Utils
-        if (params.has("o")) {
-            clusteredPoints.writeAsCsv(params.get("o"), "\n", " ");
+        DatasetIO.printResults(params, clusteredPoints, env);
 
-            // since file sinks are lazy, we trigger the execution explicitly
-            env.execute("KMeans Example");
-        } else {
-            System.out.println("Printing result to stdout. Use --output to specify output path.");
-            clusteredPoints.print();
-        }
     }
 }
 

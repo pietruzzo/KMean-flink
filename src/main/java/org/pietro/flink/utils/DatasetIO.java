@@ -22,10 +22,13 @@ public class DatasetIO {
     public static Tuple2<DataSet<Point>,DataSet<Centroid>> importFromFile(ParameterTool params, ExecutionEnvironment env){
         DataSet<Centroid> centroids;
         DataSet<Point> points;
+        String separator;
 
+        if(params.has("s")) separator = params.get("s");
+        else separator = " ";
         if (params.has("c")) {
             centroids = env.readTextFile(params.get("c"))
-                    .flatMap(new CentroidSplitter());
+                    .flatMap(new CentroidSplitter(separator));
         } else {
             System.out.println("no -c specified -> use debug dataset");
             centroids = DebugDataset.getDefaultCentroidDataSet(env);
@@ -33,7 +36,7 @@ public class DatasetIO {
 
         if (params.has("p")) {
             points = env.readTextFile(params.get("p"))
-                    .flatMap(new PointSplitter());
+                    .flatMap(new PointSplitter(separator));
         } else {
             System.out.println("no -p specified -> use debug dataset");
             points = DebugDataset.getDefaultPointDataSet(env);
@@ -67,9 +70,15 @@ public class DatasetIO {
  */
 class CentroidSplitter implements FlatMapFunction<String, Centroid> {
 
+    private String separator;
+
+    CentroidSplitter(String separator){
+        super();
+        this.separator = separator;
+    }
     @Override
     public void flatMap(String s, Collector<Centroid> collector) throws Exception {
-        String[] splitted = s.split(" ");
+        String[] splitted = s.split(separator);
         if(splitted.length !=0)
             collector.collect(new Centroid(Integer.parseInt(splitted[0]), DatasetIO.extractDimensions(Arrays.copyOfRange(splitted, 1, splitted.length))));
     }
@@ -80,9 +89,15 @@ class CentroidSplitter implements FlatMapFunction<String, Centroid> {
  */
 class PointSplitter implements FlatMapFunction<String, Point> {
 
+    private String separator;
+
+    PointSplitter(String separator){
+        super();
+        this.separator = separator;
+    }
     @Override
     public void flatMap(String s, Collector<Point> collector) throws Exception {
-        String[] splitted = s.split(" ");
+        String[] splitted = s.split(separator);
         if(splitted.length !=0)
             collector.collect(new Point(DatasetIO.extractDimensions(splitted)));
     }

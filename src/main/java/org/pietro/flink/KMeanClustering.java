@@ -28,6 +28,7 @@ import java.util.Collection;
  *  -n max number of iterations
  *  -o output absolute path
  *  -t threshold (double)
+ *  -s separator (" " if not defined)
  *  --convergence-condition
  */
 public class KMeanClustering {

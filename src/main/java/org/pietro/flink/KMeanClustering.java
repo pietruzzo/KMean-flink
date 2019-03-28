@@ -61,10 +61,10 @@ public class KMeanClustering {
          * For each centroid: sum coordinates and count number of nodes, then average
          */
         DataSet<Centroid> newCentroids = points
-                .map(new nearestCentroid()).withBroadcastSet(loop, "centroids")
-                .map(new GetCounter())
+                .map(new nearestCentroid()).withBroadcastSet(loop, "centroids").name("nearestCentroid")
+                .map(new GetCounter()).name("addCounter")
                 .groupBy(0).reduce(new CentroidAccumulator())
-                .map(new AVG());
+                .map(new AVG()).name("AverageNewCentroids");
 
         //region: Close Condition
         DataSet<Centroid> finalCentroids;
@@ -77,7 +77,7 @@ public class KMeanClustering {
 
             //get non converged centroids
             DataSet<Centroid> terminationSet = compareSet
-                    .flatMap(new isConverged(threshold));
+                    .flatMap(new isConverged(threshold)).name("findNotConverged");
 
             // feed back centroids and stop if all centroids are converged
             finalCentroids = loop.closeWith(newCentroids, terminationSet);

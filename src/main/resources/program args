@@ -1,0 +1,5 @@
+-p "C:\Users\pietro\Documents\Pietro\università\Distributed + Middleware\Middleware\flinkproject\src\main\resources\points" -c "C:\Users\pietro\Documents\Pietro\università\Distributed + Middleware\Middleware\flinkproject\src\main\resources\centers"
+
+Using Data on Desktop
+
+-p "C:\Users\pietro\Desktop\data\data.csv" -c "C:\Users\pietro\Desktop\data\centroids.csv" -s ","

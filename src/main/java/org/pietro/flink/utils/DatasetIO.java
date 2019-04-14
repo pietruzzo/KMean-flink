@@ -9,6 +9,7 @@ import org.apache.flink.util.Collector;
 import org.pietro.flink.Centroid;
 import org.pietro.flink.Point;
 
+import java.io.File;
 import java.util.Arrays;
 
 public class DatasetIO {
@@ -46,6 +47,12 @@ public class DatasetIO {
 
     public static void printResults(ParameterTool params, DataSet<Tuple2<Integer, Point>> clusteredPoints, ExecutionEnvironment env ) throws Exception {
         if (params.has("o")) {
+            File index = new File(params.get("o"));
+            String[]entries = index.list();
+            for(String s: entries){
+                File currentFile = new File(index.getPath(),s);
+                currentFile.delete();
+            }
             clusteredPoints.writeAsCsv(params.get("o"), "\n", "\t");
             env.execute("K Clustering");
 

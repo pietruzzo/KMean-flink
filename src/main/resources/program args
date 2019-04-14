@@ -3,3 +3,10 @@
 Using Data on Desktop
 
 -p "C:\Users\pietro\Desktop\data\data.csv" -c "C:\Users\pietro\Desktop\data\centroids.csv" -s ","
+
+
+-p "/home/chordnode/data/data.csv" -o "/home/chordnode/output" -c "/home/chordnode/data/centroids.csv" -s ","
+
+-p "/home/chordnode/data/data100K.csv" -o "/home/chordnode/output" -c "/home/chordnode/data/centroids100K.csv" -s ","
+
+-p "/home/chordnode/data/data1M.csv" -o "/home/chordnode/output" -c "/home/chordnode/data/centroids1M.csv" -s ","

@@ -48,12 +48,14 @@ public class DatasetIO {
     public static void printResults(ParameterTool params, DataSet<Tuple2<Integer, Point>> clusteredPoints, ExecutionEnvironment env ) throws Exception {
         if (params.has("o")) {
             File index = new File(params.get("o"));
-            String[]entries = index.list();
-            for(String s: entries){
-                File currentFile = new File(index.getPath(),s);
-                currentFile.delete();
+            if (index.list() != null && index.list().length != 0) {
+                String[] entries = index.list();
+                for (String s : entries) {
+                    File currentFile = new File(index.getPath(), s);
+                    currentFile.delete();
+                }
             }
-            clusteredPoints.writeAsCsv(params.get("o"), "\n", "\t");
+            clusteredPoints.writeAsCsv("file:///"+ params.get("o"), "\n", "\t");
             env.execute("K Clustering");
 
         } else {
@@ -66,7 +68,7 @@ public class DatasetIO {
 
         Double[] dimensions = new Double[s.length];
         for (int i = 0; i < s.length; i++) {
-            dimensions[i] = Double.parseDouble(s[i]);
+                dimensions[i] = Double.parseDouble(s[i]);
         }
         return dimensions;
     }

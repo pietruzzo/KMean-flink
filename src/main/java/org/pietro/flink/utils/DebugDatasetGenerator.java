@@ -20,7 +20,6 @@ package org.pietro.flink.utils;
 
 
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.pietro.flink.KMeans;
 
 import java.io.BufferedWriter;
 import java.io.File;

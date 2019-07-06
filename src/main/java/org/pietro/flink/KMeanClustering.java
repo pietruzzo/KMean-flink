@@ -34,7 +34,7 @@ import java.util.Collection;
 public class KMeanClustering {
 
     private static int MAX_DEFAULT_ITERATIONS = 100;
-    private static double DEFAULT_THRESHOLD = 0.0;
+    private static double DEFAULT_THRESHOLD = 0.000001;
 
     public static void main(String[] args) throws Exception {
 

@@ -5,6 +5,7 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.util.Collector;
 import org.pietro.flink.Centroid;
 import org.pietro.flink.Point;
@@ -47,15 +48,15 @@ public class DatasetIO {
 
     public static void printResults(ParameterTool params, DataSet<Tuple2<Integer, Point>> clusteredPoints, ExecutionEnvironment env ) throws Exception {
         if (params.has("o")) {
-            File index = new File(params.get("o"));
+/*            File index = new File(params.get("o"));
             if (index.list() != null && index.list().length != 0) {
                 String[] entries = index.list();
                 for (String s : entries) {
                     File currentFile = new File(index.getPath(), s);
                     currentFile.delete();
                 }
-            }
-            clusteredPoints.writeAsCsv("file:///"+ params.get("o"), "\n", "\t");
+            }*/
+            clusteredPoints.writeAsCsv("file:///"+ params.get("o"), "\n", "\t", FileSystem.WriteMode.OVERWRITE);
             env.execute("K Clustering");
 
         } else {

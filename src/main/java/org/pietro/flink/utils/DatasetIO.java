@@ -28,21 +28,12 @@ public class DatasetIO {
 
         if(params.has("s")) separator = params.get("s");
         else separator = " ";
-        if (params.has("c")) {
-            centroids = env.readTextFile(params.get("c"))
-                    .flatMap(new CentroidSplitter(separator));
-        } else {
-            System.out.println("no -c specified -> use debug dataset");
-            centroids = DebugDataset.getDefaultCentroidDataSet(env);
-        }
 
-        if (params.has("p")) {
-            points = env.readTextFile(params.get("p"))
-                    .flatMap(new PointSplitter(separator));
-        } else {
-            System.out.println("no -p specified -> use debug dataset");
-            points = DebugDataset.getDefaultPointDataSet(env);
-        }
+        centroids = env.readTextFile(params.get("c"))
+                .flatMap(new CentroidSplitter(separator));
+
+        points = env.readTextFile(params.get("p"))
+                .flatMap(new PointSplitter(separator));
         return new Tuple2<>(points, centroids);
     }
 
@@ -63,7 +54,7 @@ public class DatasetIO {
 
         Double[] dimensions = new Double[s.length];
         for (int i = 0; i < s.length; i++) {
-                dimensions[i] = Double.parseDouble(s[i]);
+            dimensions[i] = Double.parseDouble(s[i]);
         }
         return dimensions;
     }

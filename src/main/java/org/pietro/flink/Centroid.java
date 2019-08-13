@@ -12,13 +12,13 @@ public class Centroid extends Point {
      */
     public Centroid() {}
 
-    public Centroid(int id, Double[] dims) {
-        super(dims);
+    public Centroid(int id, double p1, double p2) {
+        super(p1, p2);
         this.id = id;
     }
 
     public Centroid(int id, Point p) {
-        super(p.dims);
+        super(p.p1, p.p2);
         this.id = id;
     }
 

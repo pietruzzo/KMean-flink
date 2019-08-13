@@ -8,15 +8,16 @@ import java.io.Serializable;
  */
 public class Point implements Serializable {
 
-    public Double[] dims;
+    public double p1, p2;
 
     /**
      * Default constructor needed to serialize/deserialize POJO object
      */
     public Point() {}
 
-    public Point(Double[] dims) {
-        this.dims = dims;
+    public Point(double p1, double p2) {
+        this.p1 = p1;
+        this.p2 = p2;
     }
 
     /**
@@ -25,9 +26,8 @@ public class Point implements Serializable {
      * @return this node with dimensions summed to the other
      */
     public Point addPoint(Point other) {
-        for (int i = 0; i < this.dims.length; i++) {
-            this.dims[i] = this.dims[i] + other.dims[i];
-        }
+        this.p1 = p1 + other.p1;
+        this.p2 = p2 + other.p2;
         return this;
     }
 
@@ -37,9 +37,8 @@ public class Point implements Serializable {
      * @return this node modified
      */
     public Point divideScalar(long val) {
-        for (int i = 0; i < this.dims.length; i++) {
-            this.dims[i] = this.dims[i] / val;
-        }
+        this.p1 = p1 / val;
+        this.p2 = p2 / val;
         return this;
     }
 
@@ -49,11 +48,9 @@ public class Point implements Serializable {
      * @return calculated distance
      */
     public double distance(Point other) {
-        Double sum = 0.0;
-        for (int i = 0; i < this.dims.length; i++) {
-            sum = sum + Math.pow(other.dims[i] - dims[i], 2);
-        }
-        return Math.sqrt(sum);
+        double sum = Math.pow(other.p1 - p1, 2);;
+            sum = sum + Math.pow(other.p2 - p2, 2);
+        return sum;
     }
 
     /**
@@ -62,11 +59,6 @@ public class Point implements Serializable {
      */
     @Override
     public String toString() {
-        String s = "";
-        for (int i = 0; i < dims.length; i++) {
-            s = s + dims[i] + " ";
-        }
-        s = s.trim();
-        return s;
+        return p1 + " " + p2;
     }
 }

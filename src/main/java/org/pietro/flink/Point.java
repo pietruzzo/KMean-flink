@@ -44,7 +44,7 @@ public class Point implements Serializable {
     }
 
     /**
-     * Calculate distance between nodes
+     * Calculate square distance between nodes
      * @param other
      * @return calculated distance
      */
@@ -53,7 +53,7 @@ public class Point implements Serializable {
         for (int i = 0; i < this.dims.length; i++) {
             sum = sum + Math.pow(other.dims[i] - dims[i], 2);
         }
-        return Math.sqrt(sum);
+        return sum;
     }
 
     /**

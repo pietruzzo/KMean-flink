@@ -43,7 +43,7 @@ public class Point implements Serializable {
     }
 
     /**
-     * Calculate distance between nodes
+     * Calculate distance between nodes ^2
      * @param other
      * @return calculated distance
      */

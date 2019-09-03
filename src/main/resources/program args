@@ -12,3 +12,10 @@ Using Data on Desktop
 -p "/home/chordnode/data/data1M.csv" -c "/home/chordnode/data/centroids1M.csv" -s "," -o "/home/chordnode/data/Results"
 
 ! Elimina le cartelle Results sugli slaves o darà errore
+
+
+-p "/home/ec2-user/data/data.csv" -c "/home/ec2-user/data/centroids.csv" -s "," -o "/home/ec2-user/data/Results" -n "100" -k false
+
+-p "/home/ec2-user/data/data100K.csv" -c "/home/ec2-user/data/centroids100K.csv" -s "," -o "/home/ec2-user/data/Results" -n "100" -k false
+
+-p "/home/ec2-user/data/data1M.csv" -c "/home/ec2-user/data/centroids1M.csv" -s "," -o "/home/ec2-user/data/Results" -n "100" -k false

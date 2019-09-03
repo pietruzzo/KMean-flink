@@ -28,8 +28,8 @@ import java.util.Collection;
  *  -n max number of iterations
  *  -o output absolute path
  *  -t threshold (double)
+ *  -k check threshold (boolean)
  *  -s separator (" " if not defined)
- *  --convergence-condition
  */
 public class KMeanClustering {
 
@@ -50,7 +50,7 @@ public class KMeanClustering {
         DataSet<Centroid> centroids = sets.f1;
 
         //get close condition and threshold
-        Boolean convergence = params.getBoolean("t", true);
+        Boolean convergence = params.getBoolean("k", true);
         Double threshold = params.getDouble("t", DEFAULT_THRESHOLD);
 
         // set iteration
@@ -170,20 +170,20 @@ class CentroidAccumulator implements ReduceFunction<Tuple3<Integer, Point, Long>
 }
 
 /**
- * Check if the clusters are converged given a threashold
- * collect only non-convergent clusters
+ * Check if the clusters are converged given a threshold
+ * collect only non-convergent centroids
  */
 class isConverged implements FlatMapFunction<Tuple2<Centroid, Centroid>, Centroid> {
 
     private double threshold;
 
     public isConverged(double threshold) {
-        this.threshold = threshold;
+        this.threshold = Math.pow(threshold, 2);
     }
 
     @Override
     public void flatMap(Tuple2<Centroid, Centroid> pairCentroids, Collector<Centroid> col)  {
-        if (pairCentroids.f0.distance(pairCentroids.f1) >= Math.pow(threshold, 2)) {
+        if (pairCentroids.f0.distance(pairCentroids.f1) >= threshold) {
             col.collect(pairCentroids.f0);
         }
     }
